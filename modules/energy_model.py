@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-import torch.optim as optim
 import math
 
 class EnergyModel(nn.Module):
@@ -37,8 +36,16 @@ class EnergyModel(nn.Module):
         # real data already represents a reasonable approximation of high-probability regions of the model. 
         # By perturbing real data only slightly, we can generate negative samples that are near the real data 
         # and fall into lower-probability areas under the current model.
-        xprime = self.langevin_sampler(x, n_steps=n_steps, step_size=step_size)
+        xprime = self.langevin_sampler(x, n_steps=n_steps, step_size=step_size).detach()
         # The loss here is not trying to directly measure the distance between energies 
         # or to penalize deviations in a squared sense, like in regression. 
         # Instead, it’s designed to compare the relative energy levels between real and fake data.
         return - (self.energy(x).mean() - self.energy(xprime).mean())
+    
+    def train(self, data, optimizer, batch_size: int, n_iter: int):
+        for _ in range(5000):
+            optimizer.zero_grad()
+            x_data = data[torch.randperm(len(data))[:batch_size]]
+            loss = self.compute_loss(x_data)
+            loss.backward()
+            optimizer.step()
