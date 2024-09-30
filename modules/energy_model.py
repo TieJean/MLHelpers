@@ -43,7 +43,7 @@ class EnergyModel(nn.Module):
         return - (self.energy(x).mean() - self.energy(xprime).mean())
     
     def train(self, data, optimizer, batch_size: int, n_iter: int):
-        for _ in range(5000):
+        for _ in range(n_iter):
             optimizer.zero_grad()
             x_data = data[torch.randperm(len(data))[:batch_size]]
             loss = self.compute_loss(x_data)
